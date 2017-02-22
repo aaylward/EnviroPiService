@@ -6,12 +6,14 @@ import com.google.inject.name.Named;
 import com.hubspot.liveconfig.LiveConfig;
 import com.hubspot.liveconfig.LiveConfigModule;
 import com.muchq.guice.ReinstallableGuiceModule;
+import com.muchq.json.ObjectMapperModule;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 public class EnviroModule extends ReinstallableGuiceModule {
   @Override
   protected void configure() {
+    install(new ObjectMapperModule());
     install(new LiveConfigModule(LiveConfig.builder()
                                      .usingEnvironmentVariables()
                                      .usingSystemProperties()
