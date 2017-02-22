@@ -1,6 +1,7 @@
 package com.andyaylward.enviropi.data;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import redis.clients.jedis.Jedis;
@@ -14,6 +15,7 @@ import java.util.Set;
 @Singleton
 public class SensorDataManager {
   private static final int ONE_HOUR_MILLIS = 1000 * 60 * 60;
+  private static final long ONE_DAY_MILLIS = ONE_HOUR_MILLIS * 24;
   private static final int ONE_WEEK_SECONDS = 60 * 60 * 24 * 7;
 
   private final JedisPool pool;
@@ -39,6 +41,7 @@ public class SensorDataManager {
   }
 
   public List<SensorRecord> getEvents(long from, long to) {
+    validateRange(from, to);
     List<SensorRecord> results = new ArrayList<>();
     long bucket = previousBucketFromMillis(from);
     long lastBucket = nextBucketFromMillis(to);
@@ -81,5 +84,10 @@ public class SensorDataManager {
     }
 
     return result;
+  }
+
+  private void validateRange(long from, long to) {
+    Preconditions.checkArgument(to >= from, "from must be before to");
+    Preconditions.checkArgument(to - from <= ONE_DAY_MILLIS, "maximum range is one day");
   }
 }
