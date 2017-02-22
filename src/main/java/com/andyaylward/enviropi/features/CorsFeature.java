@@ -13,6 +13,9 @@ public class CorsFeature implements Feature {
   public boolean configure(FeatureContext context) {
     CorsFilter corsFilter = new CorsFilter();
     corsFilter.getAllowedOrigins().add("*");
+    corsFilter.setAllowedMethods("GET, POST, PUT, DELETE, OPTIONS, HEAD");
+    corsFilter.setAllowCredentials(true);
+    corsFilter.setAllowedHeaders("enviro-key, origin, content-type, accept, authorization");
     context.register(corsFilter);
     return true;
   }
