@@ -1,5 +1,6 @@
-package com.andyaylward.enviropi.auth;
+package com.andyaylward.enviropi.filters;
 
+import com.andyaylward.enviropi.auth.ApiKey;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
