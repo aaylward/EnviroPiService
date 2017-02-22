@@ -1,5 +1,6 @@
 package com.andyaylward.enviropi.resources;
 
+import com.andyaylward.enviropi.auth.ApiKey;
 import com.andyaylward.enviropi.data.SensorDataManager;
 import com.andyaylward.enviropi.data.SensorRecord;
 import com.google.inject.Inject;
@@ -30,6 +31,7 @@ public class SensorResource {
   }
 
   @POST
+  @ApiKey
   public void addRecord(SensorRecord record) {
     manager.insertEvent(record);
   }
