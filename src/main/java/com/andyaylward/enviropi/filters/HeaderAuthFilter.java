@@ -16,12 +16,13 @@ import java.io.IOException;
 import java.security.MessageDigest;
 
 @Provider
-@Produces(MediaType.APPLICATION_JSON)
+@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM})
 public class HeaderAuthFilter implements ContainerRequestFilter {
   private static final String API_KEY_HEADER_NAME = "enviro-key";
   private static final Response FOUR_OH_ONE = Response
       .status(401)
       .entity(new UnauthorizedResponse())
+      .type(MediaType.APPLICATION_JSON_TYPE)
       .build();
 
   @Context
