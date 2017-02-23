@@ -1,9 +1,9 @@
 package com.andyaylward.enviropi.data;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.muchq.lunarcat.util.PublicPreconditions;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
@@ -87,7 +87,7 @@ public class SensorDataManager {
   }
 
   private void validateRange(long from, long to) {
-    Preconditions.checkArgument(to >= from, "from must be before to");
-    Preconditions.checkArgument(to - from <= ONE_DAY_MILLIS, "maximum range is one day");
+    PublicPreconditions.checkArgument(to >= from, "from must be before to");
+    PublicPreconditions.checkArgument(to - from <= ONE_DAY_MILLIS, "maximum range is one day");
   }
 }
