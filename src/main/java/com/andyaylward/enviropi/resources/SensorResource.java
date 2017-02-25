@@ -9,6 +9,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
@@ -26,13 +27,22 @@ public class SensorResource {
   }
 
   @GET
-  public List<SensorRecord> getRecords(@QueryParam("from") long from, @QueryParam("to") long to) {
-    return manager.getEvents(from, to);
+  public List<SensorRecord> getRecords(@QueryParam("deviceId") long deviceId,
+                                       @QueryParam("from") long from,
+                                       @QueryParam("to") long to) {
+    return manager.getEvents(deviceId, from, to);
   }
 
   @POST
   @ApiKey
   public void addRecord(SensorRecord record) {
     manager.insertEvent(record);
+  }
+
+  @POST
+  @ApiKey
+  @Path("expire/{millis}")
+  public void expire(@PathParam("millis") long millis) {
+    manager.expire(millis);
   }
 }

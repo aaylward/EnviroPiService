@@ -10,6 +10,8 @@ import com.muchq.json.ObjectMapperModule;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
+import java.time.Clock;
+
 public class EnviroModule extends ReinstallableGuiceModule {
   @Override
   protected void configure() {
@@ -18,6 +20,7 @@ public class EnviroModule extends ReinstallableGuiceModule {
                                      .usingEnvironmentVariables()
                                      .usingSystemProperties()
                                      .build()));
+    bind(Clock.class).toInstance(Clock.systemUTC());
   }
 
   @Provides

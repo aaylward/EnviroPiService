@@ -8,6 +8,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -16,48 +17,41 @@ import java.util.Set;
 public class SensorDataManager {
   private static final int ONE_HOUR_MILLIS = 1000 * 60 * 60;
   private static final long ONE_DAY_MILLIS = ONE_HOUR_MILLIS * 24;
-  private static final int ONE_WEEK_SECONDS = 60 * 60 * 24 * 7;
+  private static final long ONE_WEEK_MILLIS = ONE_DAY_MILLIS * 7;
+  private static final int START = 0;
 
   private final JedisPool pool;
   private final ObjectMapper mapper;
+  private final Clock clock;
 
   @Inject
-  public SensorDataManager(JedisPool pool, ObjectMapper mapper) {
+  public SensorDataManager(JedisPool pool, ObjectMapper mapper, Clock clock) {
     this.pool = pool;
     this.mapper = mapper;
+    this.clock = clock;
   }
 
   public void insertEvent(SensorRecord sensorRecord) {
+    String key = "" + sensorRecord.getDeviceId();
     try (Jedis jedis = pool.getResource()) {
-      String bucketKey = "" + previousBucketFromMillis(sensorRecord.getTime());
-      boolean addExpiration = !jedis.exists(bucketKey);
-
-      jedis.zadd(bucketKey, sensorRecord.getTime(), write(sensorRecord));
-
-      if (addExpiration) {
-        jedis.expire(bucketKey, ONE_WEEK_SECONDS);
-      }
+      jedis.zadd(key, sensorRecord.getTime(), write(sensorRecord));
     }
   }
 
-  public List<SensorRecord> getEvents(long from, long to) {
+  public List<SensorRecord> getEvents(long deviceId, long from, long to) {
     validateRange(from, to);
-    List<SensorRecord> results = new ArrayList<>();
-    long bucket = previousBucketFromMillis(from);
-    long lastBucket = previousBucketFromMillis(to);
-
-    while (bucket <= lastBucket) {
-      try (Jedis jedis = pool.getResource()) {
-        results.addAll(read(jedis.zrange("" + bucket, 0, -1)));
-      }
-      bucket += ONE_HOUR_MILLIS;
+    String key = "" + deviceId;
+    try (Jedis jedis = pool.getResource()) {
+      return read(jedis.zrangeByScore(key, from, to));
     }
-
-    return results;
   }
 
-  private long previousBucketFromMillis(long millis) {
-    return millis - (millis % ONE_HOUR_MILLIS);
+  public void expire(long deviceId) {
+    String key = "" + deviceId;
+    long upTo = clock.millis() - ONE_WEEK_MILLIS;
+    try (Jedis jedis = pool.getResource()) {
+      jedis.zremrangeByScore(key, START, upTo);
+    }
   }
 
   private String write(SensorRecord r) {
