@@ -17,7 +17,7 @@ import java.util.Set;
 public class SensorDataManager {
   private static final int ONE_HOUR_MILLIS = 1000 * 60 * 60;
   private static final long ONE_DAY_MILLIS = ONE_HOUR_MILLIS * 24;
-  private static final long ONE_WEEK_MILLIS = ONE_DAY_MILLIS * 7;
+  private static final long DURATION_TO_KEEP = ONE_DAY_MILLIS * 3;
   private static final int START = 0;
 
   private final JedisPool pool;
@@ -48,7 +48,7 @@ public class SensorDataManager {
 
   public void expire(long deviceId) {
     String key = "" + deviceId;
-    long upTo = clock.millis() - ONE_WEEK_MILLIS;
+    long upTo = clock.millis() - DURATION_TO_KEEP;
     try (Jedis jedis = pool.getResource()) {
       jedis.zremrangeByScore(key, START, upTo);
     }
