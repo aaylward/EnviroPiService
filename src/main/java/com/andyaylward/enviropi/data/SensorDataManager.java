@@ -44,7 +44,7 @@ public class SensorDataManager {
     validateRange(from, to);
     List<SensorRecord> results = new ArrayList<>();
     long bucket = previousBucketFromMillis(from);
-    long lastBucket = nextBucketFromMillis(to);
+    long lastBucket = previousBucketFromMillis(to);
 
     while (bucket <= lastBucket) {
       try (Jedis jedis = pool.getResource()) {
@@ -58,10 +58,6 @@ public class SensorDataManager {
 
   private long previousBucketFromMillis(long millis) {
     return millis - (millis % ONE_HOUR_MILLIS);
-  }
-
-  private long nextBucketFromMillis(long millis) {
-    return previousBucketFromMillis(millis) + ONE_HOUR_MILLIS;
   }
 
   private String write(SensorRecord r) {
