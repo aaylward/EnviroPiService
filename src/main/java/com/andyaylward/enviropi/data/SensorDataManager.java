@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.muchq.lunarcat.util.PublicPreconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
@@ -15,6 +17,8 @@ import java.util.Set;
 
 @Singleton
 public class SensorDataManager {
+  private static final Logger LOGGER = LoggerFactory.getLogger(SensorDataManager.class);
+
   private static final int ONE_HOUR_MILLIS = 1000 * 60 * 60;
   private static final long ONE_DAY_MILLIS = ONE_HOUR_MILLIS * 24;
   private static final long DURATION_TO_KEEP = ONE_DAY_MILLIS * 3;
@@ -42,7 +46,7 @@ public class SensorDataManager {
     validateRange(from, to);
     String key = "" + deviceId;
     try (Jedis jedis = pool.getResource()) {
-      return read(jedis.zrangeByScore(key, from, to));
+      return checkSize(read(jedis.zrangeByScore(key, from, to)), deviceId, from, to);
     }
   }
 
@@ -74,6 +78,14 @@ public class SensorDataManager {
     }
 
     return result;
+  }
+
+  private List<SensorRecord> checkSize(List<SensorRecord> records, long deviceId, long from, long to) {
+    if (records.size() < (to - from)/2000) {
+      LOGGER.error("Suspiciously small result set for device {} from {} to {}: result set size {}",
+                   deviceId, from, to, records.size());
+    }
+    return records;
   }
 
   private void validateRange(long from, long to) {
